@@ -1,21 +1,11 @@
 # SuneriCLI - Your AI-Powered Terminal Assistant
 
-![Suneri CLI Demo] <!-- Add a demo gif later -->
-
 An intelligent command-line interface that combines traditional shell commands with AI capabilities, featuring rich markdown rendering and smart command suggestions.
 
-## ✨ Features
+## To use SuneriCLI
 
-- **Natural Language Processing**  
-  `? Explain quantum computing` - Get AI-powered answers directly in your terminal
-
-- **Smart Command Helpers**  
-  `!explain tar -xzvf` - Understand complex commands  
-  `!git undo last commit` - Get Git command suggestions  
-  `!find large PDFs` - Natural language file search
-
-- **Beautiful Markdown Rendering**  
-  Perfectly formatted lists, code blocks, and tables:
-  ```markdown
-  - Item 1
-  - Item 2
+1. clone the repository
+2. put the free gemini API key in the config.yaml
+3. run ```chmod +x cli.py```
+4. run ```./cli.py```
+5. Enjoy the integration of gemini in your local shell terminal :)
