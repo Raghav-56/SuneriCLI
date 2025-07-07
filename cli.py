@@ -6,6 +6,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.completion import Completer, Completion, PathCompleter
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from rich import box
 from rich.console import Console
 import google.generativeai as genai
 from rich.panel import Panel
@@ -114,21 +115,12 @@ def execute_command(cmd: str):
 [yellow]!explain [cmd][/] - Explain shell commands
 [green]!git [action][/]     - Smart Git helper
 [magenta]!find [query][/]    - Natural language file search
-[white]!![cmd][/]        - Rerun last command
 [dim]exit/quit - Exit shell"""),
                 title="Help",
                 border_style="blue",
                 width=80
             ))
-        elif cmd.startswith("!!"):
-            try:
-                with open('.gsh_history', 'r') as f:
-                    lines = f.readlines()
-                    if len(lines) > 1:
-                        last_cmd = lines[-2].strip()
-                        execute_command(last_cmd)
-            except Exception as e:
-                console.print(f"[red]Error:[/] No command history available")
+
         else:
             result = subprocess.run(
                 cmd, shell=True,
