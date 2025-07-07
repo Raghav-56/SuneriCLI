@@ -1,0 +1,4 @@
+prompt-toolkit>=3.0.0
+pyyaml>=6.0.0
+rich>=13.0.0
+google-generativeai>=0.3.0
