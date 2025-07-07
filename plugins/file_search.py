@@ -1,28 +1,18 @@
-import google.generativeai as genai
-import yaml
-import os
+from .gemini_utils import gemini_generate_content
 import re
 
-def get_gemini_model():
-    config_path = os.path.expanduser("config.yaml")
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
-    genai.configure(api_key=config["gemini_api_key"])
-    return genai.GenerativeModel('models/gemini-1.5-flash')
-
-model = get_gemini_model()
 
 def handle_find(query: str) -> str:
     """
     Generate precise, executable find commands matching the exact request
     Returns sanitized, shell-ready commands
     """
-    clean_query = ' '.join(query.strip().split()).lower()
+    clean_query = " ".join(query.strip().split()).lower()
 
     simple_cases = {
-        'count all .txt files': 'find . -type f -name "*.txt" | wc -l',
-        'sh files': 'find . -type f -name "*.sh"',
-        'python or javascript files': r'find . -type f \( -name "*.py" -o -name "*.js" \)',
+        "count all .txt files": 'find . -type f -name "*.txt" | wc -l',
+        "sh files": 'find . -type f -name "*.sh"',
+        "python or javascript files": r'find . -type f \( -name "*.py" -o -name "*.js" \)',
     }
 
     if clean_query in simple_cases:
@@ -44,25 +34,24 @@ def handle_find(query: str) -> str:
     Command: find ."""
 
     try:
-        response = model.generate_content(prompt)
-        command = response.text.strip()
+        command = gemini_generate_content(prompt)
+        command = re.sub(r"^\s*find\s*\.", "find .", command)
+        command = re.sub(r"\s+", " ", command).split("\n")[0].split("#")[0].strip()
 
-        command = re.sub(r'^\s*find\s*\.', 'find .', command)
-        command = re.sub(r'\s+', ' ', command).split('\n')[0].split('#')[0].strip()
-
-        if not command.startswith('find .'):
+        if not command.startswith("find ."):
             command = f"find . {command}"
 
-        if any(char in command for char in [';', '&&', '||', '`', '$(']):
+        if any(char in command for char in [";", "&&", "||", "`", "$("]):
             raise ValueError("Potential command injection")
 
-        if not command.startswith('find . '):
+        if not command.startswith("find . "):
             raise ValueError("Command must start with 'find .'")
 
         return command
     except Exception as e:
         print(f"Gemini error: {str(e)}")
         return _basic_find_handler(query)
+
 
 def _basic_find_handler(query: str) -> str:
     """Fallback handler with basic patterns"""
@@ -75,26 +64,27 @@ def _basic_find_handler(query: str) -> str:
         "large": "-size +10M",
         "empty": "-empty",
         "dir": "-type d",
-        "file": "-type f"
+        "file": "-type f",
     }
 
     terms = []
-    for word in re.findall(r'[\w\.]+', query.lower()):
+    for word in re.findall(r"[\w\.]+", query.lower()):
         if word in patterns:
             terms.append(patterns[word])
-        elif re.match(r'^\..+$', word):  # Handle extensions like .sh
+        elif re.match(r"^\..+$", word):  # Handle extensions like .sh
             terms.append(f"-type f -name '*{word}'")
         elif word.isnumeric():
             terms.append(f"-size +{word}M")
 
     return f"find . {' '.join(terms)}" if terms else "find . -type f"
 
+
 if __name__ == "__main__":
     test_queries = [
         "!find .sh files",
         "find python files",
         "locate large javascript files",
-        "find empty directories"
+        "find empty directories",
     ]
 
     for query in test_queries:
