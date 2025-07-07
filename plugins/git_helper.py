@@ -1,16 +1,6 @@
-import google.generativeai as genai
 from typing import List
-import yaml
-import os
+from .gemini_utils import gemini_generate_content
 
-def load_gemini_config():
-    config_path = os.path.expanduser("config.yaml")
-    with open(config_path) as f:
-        config = yaml.safe_load(f)
-    genai.configure(api_key=config["gemini_api_key"])
-    return genai.GenerativeModel('models/gemini-1.5-flash')
-
-model = load_gemini_config()
 
 def handle_git(args: List[str]) -> str:
     """
@@ -25,7 +15,7 @@ def handle_git(args: List[str]) -> str:
         "log": "git log --oneline -n 10",
         "branch": "git branch -vv",
         "stash": "git stash list",
-        "diff": "git diff --cached"
+        "diff": "git diff --cached",
     }
 
     if args[0] in simple_commands:
@@ -40,8 +30,7 @@ def handle_git(args: List[str]) -> str:
     Command: git """
 
     try:
-        response = model.generate_content(prompt)
-        full_command = response.text.strip()
+        full_command = gemini_generate_content(prompt)
         if full_command.startswith("git "):
             return full_command
         return f"git {full_command}"
